@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:boomerang_app/generated_code.dart';
+import 'package:boomerang_app/input.dart';
 import 'package:flutter/material.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
@@ -13,8 +17,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellow),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       home: const MyHomePage(),
@@ -33,6 +38,9 @@ class _MyHomePageState extends State<MyHomePage> {
   final _isShorebirdAvailable = _shorebirdCodePush.isShorebirdAvailable();
   int? _currentPatchVersion;
   bool _isCheckingForUpdate = false;
+  bool _updateAvailable = false;
+
+  bool _loading = false;
 
   @override
   void initState() {
@@ -44,6 +52,20 @@ class _MyHomePageState extends State<MyHomePage> {
         _currentPatchVersion = currentPatchVersion;
       });
     });
+    automaticPeriodicUpdateCheck();
+  }
+
+  Future<void> automaticPeriodicUpdateCheck() async {
+    if (!_isShorebirdAvailable) return;
+    Future.delayed(const Duration(seconds: 100), () {
+      Timer.periodic(const Duration(seconds: 3), (timer) {
+        if (!mounted || _updateAvailable) {
+          timer.cancel();
+          return;
+        }
+        _checkForUpdate();
+      });
+    });
   }
 
   Future<void> _checkForUpdate() async {
@@ -52,7 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     // Ask the Shorebird servers if there is a new patch available.
-    final isUpdateAvailable =
+    _updateAvailable =
         await _shorebirdCodePush.isNewPatchAvailableForDownload();
 
     if (!mounted) return;
@@ -61,14 +83,14 @@ class _MyHomePageState extends State<MyHomePage> {
       _isCheckingForUpdate = false;
     });
 
-    if (isUpdateAvailable) {
+    if (_updateAvailable) {
       _showUpdateAvailableBanner();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No update available'),
-        ),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text('No update available'),
+      //   ),
+      // );
     }
   }
 
@@ -173,32 +195,51 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: theme.colorScheme.inversePrimary,
-        title: const Text("Shorebirds CodePush Example"),
+        title: const Text("AI + Shorebird demo"),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text('Current patch version:'),
-            Text(
-              heading,
-              style: theme.textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 20),
-            if (!_isShorebirdAvailable)
-              Text(
-                'Shorebird Engine not available.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.error,
+            Column(
+              children: [
+                const SizedBox(height: 70),
+                const Text('Current patch version:'),
+                Text(
+                  heading,
+                  style: theme.textTheme.headlineMedium,
                 ),
+                const SizedBox(height: 20),
+                if (!_isShorebirdAvailable)
+                  Text(
+                    'Shorebird Engine not available.',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                // if (_isShorebirdAvailable)
+                //   ElevatedButton(
+                //     onPressed: _isCheckingForUpdate ? null : _checkForUpdate,
+                //     child: _isCheckingForUpdate
+                //         ? const _LoadingIndicator()
+                //         : const Text('Check for update'),
+                //   ),
+              ],
+            ),
+
+            // ignore: prefer_const_constructors
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: GeneratedCodeWidget(),
               ),
-            if (_isShorebirdAvailable)
-              ElevatedButton(
-                onPressed: _isCheckingForUpdate ? null : _checkForUpdate,
-                child: _isCheckingForUpdate
-                    ? const _LoadingIndicator()
-                    : const Text('Check for update'),
-              ),
+            ),
+            AITextField(
+              loading: _loading,
+              onChangeLoading: (value) {
+                setState(() => _loading = value);
+              },
+            ),
+            const SizedBox(height: 15),
           ],
         ),
       ),
