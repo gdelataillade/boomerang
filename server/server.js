@@ -6,8 +6,7 @@ const { OpenAI } = require('openai');
 const fs = require('fs');
 const { exec } = require('child_process');
 
-require('dotenv').config();
-const apiKey = process.env.API_KEY;
+const apiKey = 'your-openai-api-key';
 
 const client = new OpenAI({
     apiKey: apiKey,
