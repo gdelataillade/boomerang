@@ -6,6 +6,12 @@ Welcome to **Boomerang**, a proof-of-concept Flutter application that combines t
 
 Boomerang allows users to dynamically add widgets to their Flutter app by typing a simple text input. Here's how it works:
 
+
+
+https://github.com/user-attachments/assets/211ceda4-f3bc-4ee9-a61d-c63d265f090e
+
+
+
 1. **User Input** ✏️: Users specify the widget they want by typing it into a text field.
 2. **AI-Generated Code** 🤖: The input is processed by an AI, which generates the corresponding Flutter code for the widget.
 3. **Live App Update** 🔄: Shorebird then deploys the update in release mode, allowing the app to immediately reflect the changes without needing a full app store submission.
@@ -80,6 +86,7 @@ To try out the Boomerang demo on your local machine, follow these steps:
      shorebird preview ios
      ```
      or
+     
      ```bash
      shorebird preview android
      ```
@@ -93,3 +100,7 @@ You’re all set! 🎉 The app will now allow you to input widgets and see them 
 If you encounter any issues, feel free to create an issue. Contributions are welcome! If you’d like to improve Boomerang, simply fork the repo, make your changes, and submit a pull request.
 
 Thanks for checking out Boomerang! 🙌
+
+## 📱 Social Media posts:
+- X (Twitter): https://x.com/gdelataillade/status/1846197446956716459
+- LinkedIn: https://www.linkedin.com/feed/update/urn:li:activity:7251967940370042880?utm_source=share&utm_medium=member_desktop
