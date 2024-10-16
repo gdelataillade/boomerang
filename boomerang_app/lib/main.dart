@@ -37,7 +37,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final _isShorebirdAvailable = _shorebirdCodePush.isShorebirdAvailable();
   int? _currentPatchVersion;
-  bool _isCheckingForUpdate = false;
   bool _updateAvailable = false;
 
   bool _loading = false;
@@ -69,28 +68,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _checkForUpdate() async {
-    setState(() {
-      _isCheckingForUpdate = true;
-    });
-
     // Ask the Shorebird servers if there is a new patch available.
     _updateAvailable =
         await _shorebirdCodePush.isNewPatchAvailableForDownload();
 
     if (!mounted) return;
 
-    setState(() {
-      _isCheckingForUpdate = false;
-    });
-
     if (_updateAvailable) {
+      setState(() {
+        _loading = false;
+      });
       _showUpdateAvailableBanner();
-    } else {
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(
-      //     content: Text('No update available'),
-      //   ),
-      // );
     }
   }
 
@@ -216,20 +204,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       color: theme.colorScheme.error,
                     ),
                   ),
-                // if (_isShorebirdAvailable)
-                //   ElevatedButton(
-                //     onPressed: _isCheckingForUpdate ? null : _checkForUpdate,
-                //     child: _isCheckingForUpdate
-                //         ? const _LoadingIndicator()
-                //         : const Text('Check for update'),
-                //   ),
               ],
             ),
-
             // ignore: prefer_const_constructors
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10),
                 child: GeneratedCodeWidget(),
               ),
             ),

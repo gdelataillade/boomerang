@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+const ip = 'YOUR_IP_ADDRESS';
+
 class AITextField extends StatefulWidget {
   const AITextField({
     super.key,
@@ -27,11 +29,11 @@ class _AITextFieldState extends State<AITextField> {
     super.initState();
   }
 
-  // Use "ip" command to get the IP address of the server (machine running the server)
   Future<void> submitInput(String input) async {
     print("User input: $input");
+    widget.onChangeLoading(true);
     final response = await http.post(
-      Uri.parse('http://192.168.1.27:3000/instruction'),
+      Uri.parse('http://$ip:3000/instruction'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'instruction': input}),
     );

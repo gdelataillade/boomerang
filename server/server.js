@@ -6,12 +6,15 @@ const { OpenAI } = require('openai');
 const fs = require('fs');
 const { exec } = require('child_process');
 
-// TODO: Hide API KEY
+require('dotenv').config();
+const apiKey = process.env.API_KEY;
+
 const client = new OpenAI({
-    apiKey: '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',
+    apiKey: apiKey,
 });
 
 const flutterProjectPath = '/Users/gdelataillade/dev/boomerang/boomerang_app';
+const filePath = `${flutterProjectPath}/lib/generated_code.dart`;
 
 app.use(express.json());
 
@@ -26,9 +29,10 @@ app.post('/instruction', async (req, res) => {
   try {
     const generatedCode = await getGeneratedCode(instruction);
     // const generatedCode = flutterMockGeneratedCode;
-    console.log('Code generated :\n', generatedCode);
+    const cleanedCode = generatedCode.replace(/```dart/g, '').replace(/```/g, '');
+    console.log('Code generated :\n', cleanedCode);
 
-    updateFlutterCode(generatedCode);
+    updateFlutterCode(cleanedCode);
     console.log('Flutter code updated');
 
     deployWithShorebird();
@@ -37,12 +41,28 @@ app.post('/instruction', async (req, res) => {
     res.send({ message: 'Update was triggered' });
   } catch (error) {
     console.error('Error while processing instructions :', error);
-    res.status(500).send({ error: 'An error occured' });
+    res.status(500).send({ error: 'An error occurred' });
   }
 });
 
 async function getGeneratedCode(instruction) {
-    const prompt = `You are a Flutter developer. Based on the following instruction, write the complete Dart code for a Flutter widget that must be named "GeneratedCodeWidget" with no specified constructor. Use only standard Flutter libraries and do not include any external packages or plugins. Import material library. Provide ONLY the Dart code for the widget, without any additional text, explanations, comments, or markdown formatting. Do not include triple backticks (\`\`\`) or any language identifiers. Do not include any import statements unless they are part of the standard Flutter SDK. Instruction: "${instruction}". Here is an example of the expected output if the instruction is "Create a yellow circle": ${flutterMockGeneratedCode}`;  
+    // Read the existing code from generated_code.dart
+    let existingCode = '';
+    try {
+        existingCode = fs.readFileSync(filePath, 'utf8');
+    } catch (err) {
+        console.log('Could not read existing code:', err);
+        existingCode = ''; // If the file doesn't exist or can't be read, use an empty string
+    }
+
+    const prompt = `
+You are a Flutter developer. Based on the following instruction, modify the given existing code for the widget named "GeneratedCodeWidget" to fulfill the instruction. Use only standard Flutter libraries and do not include any external packages or plugins. Ensure that all necessary import statements are included, especially 'package:flutter/material.dart'. **Ensure that the code is null-safe and compatible with the latest Flutter SDK, using proper null-safety annotations and avoiding deprecated syntax.** Provide ONLY the complete updated Dart code for the widget, including necessary import statements, without any additional text, explanations, comments, markdown formatting, or surrounding code blocks. Do not include triple backticks (\`\`\`) or any language identifiers. The output should be directly usable in a Dart file.
+
+Existing code:
+${existingCode}
+
+Instruction: "${instruction}"
+`;
 
     const response = await client.chat.completions.create({
         model: 'gpt-3.5-turbo',
@@ -59,12 +79,7 @@ async function getGeneratedCode(instruction) {
 }
 
 function updateFlutterCode(code) {
-  const filePath = `${flutterProjectPath}/lib/generated_code.dart`;
-
-  const fileContent = `
-// Generated file. DO NOT MODIFY.
-${code}
-  `;
+  const fileContent = code;
 
   fs.writeFileSync(filePath, fileContent, 'utf8');
 }
